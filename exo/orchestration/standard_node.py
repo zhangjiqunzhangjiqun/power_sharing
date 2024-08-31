@@ -75,6 +75,7 @@ class StandardNode(Node):
 
         if DEBUG >= 2: print(f"[{request_id}] process prompt: {base_shard=} {shard=} {prompt=}")
         if shard.start_layer != 0:
+            # 这一行检查当前分片的起始层（start_layer）是否不等于0。在分片处理中，通常每个分片会负责模型的一部分或一层。如果分片的起始层不是0，这可能意味着这个分片不是处理流程中的第一个分片。
             if DEBUG >= 2: print(f"[{request_id}] forwarding to next shard: {base_shard=} {shard=} {prompt=}")
             await self.forward_to_next_shard(shard, prompt, request_id)
             return
@@ -137,6 +138,7 @@ class StandardNode(Node):
             return None
 
     async def forward_to_next_shard(self, base_shard: Shard, tensor_or_prompt: Union[np.ndarray, str], request_id: str, inference_state: Optional[str] = None) -> None:
+        # 如果任务未完成，它将异步地转发处理到下一个模型分片。最后，它根据已生成的token数量返回相应的结果。这种模式在处理需要顺序生成多个输出的异步任务时非常有用，特别是在文本生成、语音合成等领域。
         if not self.partitioning_strategy:
             if DEBUG >= 1: print("No partitioning strategy found. Skipping forward.")
             return
